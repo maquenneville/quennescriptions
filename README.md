@@ -26,8 +26,11 @@ You can install these packages using pip:
 pip install moviepy SpeechRecognition numpy pandas pydub pyaudio wave cv2 noisereduce librosa openai
 
 
+You'll also need an OpenAi developers API key, information located here: https://platform.openai.com/overview
+
+
 # Usage
-To use the script, run the main.py file from the command line with the following arguments:
+To use the script, first change the API key in VideoSubtitlesHelpers.py to your OpenAI API key.  Then, run the main.py file from the command line with the following arguments:
 
 python VideoSubtitlesMain.py <video_file> [--dialect <dialect_code>] [--line-time <line_time>] [--dialogue]
 

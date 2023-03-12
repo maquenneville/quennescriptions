@@ -8,7 +8,7 @@ Created on Sat Mar 11 00:35:16 2023
 
 import argparse
 import os
-from VideoTranscriptionHelpers import (
+from VideoSubtitlesHelpers import (
     convert_single_to_wav,
     transcribe_audio,
     generate_edited_response,
@@ -21,9 +21,9 @@ def main():
     # Parse command-line arguments
     parser = argparse.ArgumentParser(description="Convert video to WAV, transcribe speech, generate edited response, and add transcript to video.")
     parser.add_argument("video_file", help="Path to input video file")
-    parser.add_argument("prompt", help="Prompt for edited response generation")
     parser.add_argument("--dialect", help="Dialect code for speech recognition (default is en-US)", default="en-US")
     parser.add_argument("--line-time", help="Duration of each line of transcript in seconds (default is 10)", type=int, default=10)
+    parser.add_argument("--dialogue", help="Set this flag if the transcription is dialogue", action="store_true")
     args = parser.parse_args()
 
     # Convert the video to WAV format
@@ -49,5 +49,6 @@ def main():
 
 if __name__ == "__main__":
     main()
+
 
     

@@ -134,7 +134,7 @@ def transcribe_audio(audio_file, dialect_code="en-US"):
     # Load the audio file
     with sr.WavFile(audio_file) as source:
         # Adjust for ambient noise
-        recognizer = sr.Recognizer(dialect_code)
+        recognizer = sr.Recognizer()
         recognizer.pause_threshold = 1.0
         
         
@@ -332,7 +332,7 @@ def generate_edited_response(prompt, dialogue=False):
         ]
     else:
         messages = [
-            {"role": "system", "content": "This chat is for formatting and punctuating raw text into properly formatted sentences and paragraphs."},
+            {"role": "system", "content": "This chat is for formatting and punctuating raw text into properly formatted sentences, with each sentence on a new line."},
             {"role": "user", "content": f"Format the following text.  Do not add or switch words: '{prompt}'"}
         ]
     
@@ -371,13 +371,15 @@ def add_transcript_to_video(transcript, video_path, line_time=10):
     # Create a list of lines for the subtitles
     lines = transcript.split('\n')
     subtitle_lines = []
+    video_duration = video.duration
+    start_time = 0
     for i in range(len(lines)):
-        start_time = i * line_time  # Each line is assumed to be spoken for 10 seconds
-        end_time = (i + 1) * line_time
-        subtitle_lines.append((start_time, end_time, lines[i]))
+        end_time = min((i + 1) * line_time, video_duration)
+        subtitle_lines.append(((start_time, end_time), lines[i]))
+        start_time = end_time
 
     # Create a SubtitlesClip object with the subtitle lines
-    subtitles = SubtitlesClip(subtitle_lines, size=24)
+    subtitles = SubtitlesClip(subtitle_lines)
 
     # Set the position of the subtitles on the video
     subtitles = subtitles.set_pos(('center', 'bottom'))

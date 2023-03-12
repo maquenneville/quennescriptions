@@ -51,5 +51,5 @@ This script is licensed under the MIT License. See the LICENSE file for more inf
 
 # Notes
 
-This script is a work in progress and not yet fully stable
+You may need to set the ImageMagick config_default.py variable IMAGEMAGICK_BINARY to the path with your magick.exe file, especially if you're using Windows.
 

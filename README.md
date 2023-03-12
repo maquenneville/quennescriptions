@@ -1,7 +1,7 @@
 # HomeVideoSubtitles
 
 
-This Python script provides a command-line interface for adding speech-to-text transcription for video files (accepts most mainstream video filetypes).
+This Python script provides a command-line interface for adding speech-to-text transcription for video files, creating a copy with subtitles (accepts most mainstream video filetypes).
 
 # Installation
 To use this script, you will need to have Python 3 and the following Python packages installed:

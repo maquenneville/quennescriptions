@@ -8,6 +8,9 @@ Created on Sat Mar 11 00:27:39 2023
 import os
 import moviepy.editor as mp
 from moviepy.video.tools.subtitles import SubtitlesClip
+from moviepy.video.VideoClip import TextClip
+from moviepy.video.io.VideoFileClip import VideoFileClip
+from moviepy.video.compositing.CompositeVideoClip import CompositeVideoClip
 import io
 import numpy as np
 import webrtcvad
@@ -29,27 +32,26 @@ import math
 openai.api_key = "YOUR_API_KEY"
 
 
-
 def compress_wav_to_flac(wav_filename):
     """
     Compresses a WAV file to FLAC format using the flac command-line tool.
-    
+
     Args:
     wav_filename (str): the name of the WAV file to compress
-    
+
     Returns:
     The name of the resulting FLAC file
     """
     # Create FLAC filename
-    flac_filename = os.path.splitext(wav_filename)[0] + '.flac'
-    
+    flac_filename = os.path.splitext(wav_filename)[0] + ".flac"
+
     # Check if a file with the same name already exists
     if os.path.exists(flac_filename):
         os.remove(flac_filename)
-    
+
     # Compress WAV file to FLAC format using flac command-line tool
-    subprocess.run(['flac', '--silent', '-o', flac_filename, wav_filename], check=True)
-    
+    subprocess.run(["flac", "--silent", "-o", flac_filename, wav_filename], check=True)
+
     print("WAV file converted to FLAC")
     print(flac_filename)
     return flac_filename
@@ -64,7 +66,7 @@ def convert_videos_to_wav(folder_path):
             input_file = os.path.join(folder_path, file)
             mp3_file = os.path.splitext(input_file)[0] + extension + ".mp3"
             wav_file = os.path.splitext(input_file)[0] + extension + ".wav"
-            
+
             try:
                 subprocess.run(["ffmpeg", "-i", input_file, mp3_file], check=True)
                 subprocess.run(["ffmpeg", "-i", mp3_file, wav_file], check=True)
@@ -72,12 +74,13 @@ def convert_videos_to_wav(folder_path):
                 print(f"Successfully converted {file} to {wav_file}")
             except subprocess.CalledProcessError as e:
                 print(f"Failed to convert {file}: {e}")
-                
+
+
 def convert_single_to_wav(video_path):
 
     mp3_file = os.path.splitext(video_path)[0] + ".mp3"
     wav_file = os.path.splitext(video_path)[0] + ".wav"
-    
+
     try:
         subprocess.run(["ffmpeg", "-i", video_path, mp3_file], check=True)
         subprocess.run(["ffmpeg", "-i", mp3_file, wav_file], check=True)
@@ -86,7 +89,6 @@ def convert_single_to_wav(video_path):
         return wav_file
     except subprocess.CalledProcessError as e:
         print(f"Failed to convert file: {e}")
-
 
 
 def extract_audio(video_path, audio_filename=None):
@@ -103,11 +105,11 @@ def extract_audio(video_path, audio_filename=None):
         audio_filename = audio_filename + ".wav"
 
     # Save the audio to the WAV file
-    audio.write_audiofile(audio_filename, codec='pcm_s16le', fps=44100, nbytes=2, bitrate='16k')
-    
+    audio.write_audiofile(
+        audio_filename, codec="pcm_s16le", fps=44100, nbytes=2, bitrate="16k"
+    )
+
     print("Audio extracted and saved to", audio_filename)
-
-
 
 
 def transcribe_speech_audio(raw_audio_file):
@@ -128,16 +130,13 @@ def transcribe_speech_audio(raw_audio_file):
         print("Unable to transcribe audio")
 
 
-    
-
 def transcribe_audio(audio_file, dialect_code="en-US"):
     # Load the audio file
     with sr.WavFile(audio_file) as source:
         # Adjust for ambient noise
         recognizer = sr.Recognizer()
         recognizer.pause_threshold = 1.0
-        
-        
+
         recognizer.adjust_for_ambient_noise(source)
 
         # Extract audio data from the file
@@ -149,7 +148,6 @@ def transcribe_audio(audio_file, dialect_code="en-US"):
         return transcribed_text_google
     except sr.UnknownValueError:
         print("Unable to transcribe audio")
-
 
 
 def record_audio(filename, duration=5, sample_rate=44100, channels=1, sample_width=2):
@@ -166,11 +164,13 @@ def record_audio(filename, duration=5, sample_rate=44100, channels=1, sample_wid
     p = pyaudio.PyAudio()
 
     # Open the microphone stream
-    stream = p.open(format=p.get_format_from_width(sample_width),
-                    channels=channels,
-                    rate=sample_rate,
-                    input=True,
-                    frames_per_buffer=1024)
+    stream = p.open(
+        format=p.get_format_from_width(sample_width),
+        channels=channels,
+        rate=sample_rate,
+        input=True,
+        frames_per_buffer=1024,
+    )
 
     print("Recording...")
 
@@ -196,8 +196,6 @@ def record_audio(filename, duration=5, sample_rate=44100, channels=1, sample_wid
     wf.close()
 
     print(f"Saved audio to {filename}.")
-    
-
 
 
 def record_video(video_path, length_seconds):
@@ -210,10 +208,10 @@ def record_video(video_path, length_seconds):
     cap.set(cv2.CAP_PROP_FPS, 30)
 
     # Set the video codec and output file extension for each file type
-    codec = cv2.VideoWriter_fourcc(*'XVID')
-    avi_ext = '.avi'
-    mp4_ext = '.mp4'
-    mkv_ext = '.mkv'
+    codec = cv2.VideoWriter_fourcc(*"XVID")
+    avi_ext = ".avi"
+    mp4_ext = ".mp4"
+    mkv_ext = ".mkv"
 
     # Calculate the total number of frames to record
     total_frames = int(length_seconds * cap.get(cv2.CAP_PROP_FPS))
@@ -223,10 +221,14 @@ def record_video(video_path, length_seconds):
     avi_writer = cv2.VideoWriter(avi_path, codec, cap.get(cv2.CAP_PROP_FPS), (640, 480))
 
     mp4_path = os.path.splitext(video_path)[0] + mp4_ext
-    mp4_writer = cv2.VideoWriter(mp4_path, cv2.VideoWriter_fourcc(*'mp4v'), cap.get(cv2.CAP_PROP_FPS), (640, 480))
+    mp4_writer = cv2.VideoWriter(
+        mp4_path, cv2.VideoWriter_fourcc(*"mp4v"), cap.get(cv2.CAP_PROP_FPS), (640, 480)
+    )
 
     mkv_path = os.path.splitext(video_path)[0] + mkv_ext
-    mkv_writer = cv2.VideoWriter(mkv_path, cv2.VideoWriter_fourcc(*'VP90'), cap.get(cv2.CAP_PROP_FPS), (640, 480))
+    mkv_writer = cv2.VideoWriter(
+        mkv_path, cv2.VideoWriter_fourcc(*"VP90"), cap.get(cv2.CAP_PROP_FPS), (640, 480)
+    )
 
     # Start recording video
     print("Recording...")
@@ -249,7 +251,6 @@ def record_video(video_path, length_seconds):
     print("Video saved to:", avi_path, mp4_path, mkv_path)
 
 
-
 def convert_mp4_to_avi(mp4_path):
     # Load the MP4 file as a VideoFileClip object
     clip = mp.VideoFileClip(mp4_path)
@@ -258,13 +259,14 @@ def convert_mp4_to_avi(mp4_path):
     avi_path = os.path.splitext(mp4_path)[0] + ".avi"
 
     # Write the AVI file using the same codec and parameters as the input
-    clip.write_videofile(avi_path, codec='png', fps=clip.fps)
+    clip.write_videofile(avi_path, codec="png", fps=clip.fps)
 
     # Close the VideoFileClip object to free up memory
     clip.close()
-    
+
     print("mp4 file converted to avi")
-    
+
+
 def convert_mp4_to_mkv(mp4_path):
     # Load the MP4 file as a VideoFileClip object
     clip = mp.VideoFileClip(mp4_path)
@@ -273,15 +275,12 @@ def convert_mp4_to_mkv(mp4_path):
     avi_path = os.path.splitext(mp4_path)[0] + ".mkv"
 
     # Write the AVI file using the same codec and parameters as the input
-    clip.write_videofile(avi_path, codec='png', fps=clip.fps)
+    clip.write_videofile(avi_path, codec="png", fps=clip.fps)
 
     # Close the VideoFileClip object to free up memory
     clip.close()
-    
+
     print("mp4 file converted to mkv")
-    
-
-
 
 
 def enhance_background(input_file):
@@ -294,7 +293,9 @@ def enhance_background(input_file):
     # Split channels and reduce noise on each channel separately
     channels = librosa.core.audio.channels_to_samples(samples, audio.channels)
     for c in range(audio.channels):
-        channels[c] = nr.reduce_noise(audio_clip=channels[c], noise_clip=channels[c], verbose=False)
+        channels[c] = nr.reduce_noise(
+            audio_clip=channels[c], noise_clip=channels[c], verbose=False
+        )
 
     # Recombine channels
     new_samples = np.hstack(channels)
@@ -304,11 +305,13 @@ def enhance_background(input_file):
         new_samples.tobytes(),
         frame_rate=audio.frame_rate,
         sample_width=audio.sample_width,
-        channels=audio.channels
+        channels=audio.channels,
     )
 
     # Adjust audio to improve readability for transcription
-    adjusted_audio = librosa.effects.trim(new_audio.get_array_of_samples(), top_db=20)[0]
+    adjusted_audio = librosa.effects.trim(new_audio.get_array_of_samples(), top_db=20)[
+        0
+    ]
     adjusted_audio = librosa.effects.preemphasis(adjusted_audio)
 
     # Create a filename for the enhanced audio file in the same folder as the input file
@@ -321,21 +324,31 @@ def enhance_background(input_file):
     return output_file
 
 
-
 def generate_edited_response(prompt, dialogue=False):
-    
+
     if dialogue:
-    
+
         messages = [
-            {"role": "system", "content": "This chat is for formatting and correcting raw text into properly formatted dialogue."},
-            {"role": "user", "content": f"Format the following text into dialogue as best you can: '{prompt}'"}
+            {
+                "role": "system",
+                "content": "This chat is for formatting and correcting raw text into properly formatted dialogue.",
+            },
+            {
+                "role": "user",
+                "content": f"Format the following text into dialogue as best you can: '{prompt}'",
+            },
         ]
     else:
         messages = [
-            {"role": "system", "content": "This chat is for formatting and punctuating raw text into properly formatted sentences, with each sentence on a new line."},
-            {"role": "user", "content": f"Format the following text.  Do not add or switch words: '{prompt}'"}
+            {
+                "role": "system",
+                "content": "This chat is for formatting and punctuating raw text into properly formatted sentences, with each sentence on a new line.",
+            },
+            {
+                "role": "user",
+                "content": f"Format the following text.  Do not add or switch words: '{prompt}'",
+            },
         ]
-    
 
     model_engine = "gpt-3.5-turbo"
     # Generate a response
@@ -363,31 +376,153 @@ def generate_edited_response(prompt, dialogue=False):
     return response
 
 
+def needleman_wunsch(seq1, seq2, match_score=1, mismatch_score=-1, gap_penalty=-1):
+    n, m = len(seq1), len(seq2)
+    dp_matrix = np.zeros((n + 1, m + 1))
+    traceback = np.zeros((n + 1, m + 1), dtype=int)
 
-def add_transcript_to_video(transcript, video_path, line_time=10):
-    # Load the video file
-    video = mp.VideoFileClip(video_path)
+    for i in range(1, n + 1):
+        dp_matrix[i, 0] = i * gap_penalty
+        traceback[i, 0] = 1
 
-    # Create a list of lines for the subtitles
-    lines = transcript.split('\n')
-    subtitle_lines = []
-    video_duration = video.duration
-    start_time = 0
-    for i in range(len(lines)):
-        end_time = min((i + 1) * line_time, video_duration)
-        subtitle_lines.append(((start_time, end_time), lines[i]))
-        start_time = end_time
+    for j in range(1, m + 1):
+        dp_matrix[0, j] = j * gap_penalty
+        traceback[0, j] = 2
 
-    # Create a SubtitlesClip object with the subtitle lines
-    subtitles = SubtitlesClip(subtitle_lines)
+    for i in range(1, n + 1):
+        for j in range(1, m + 1):
+            match = dp_matrix[i - 1, j - 1] + (
+                match_score if seq1[i - 1] == seq2[j - 1] else mismatch_score
+            )
+            delete = dp_matrix[i - 1, j] + gap_penalty
+            insert = dp_matrix[i, j - 1] + gap_penalty
+            dp_matrix[i, j] = max(match, delete, insert)
 
-    # Set the position of the subtitles on the video
-    subtitles = subtitles.set_pos(('center', 'bottom'))
+            if dp_matrix[i, j] == match:
+                traceback[i, j] = 0
+            elif dp_matrix[i, j] == delete:
+                traceback[i, j] = 1
+            else:
+                traceback[i, j] = 2
 
-    # Add the subtitles to the video
-    result = mp.CompositeVideoClip([video, subtitles])
+    i, j = n, m
+    aligned_seq1, aligned_seq2 = [], []
+    while i > 0 or j > 0:
+        if traceback[i, j] == 0:
+            aligned_seq1.append(seq1[i - 1])
+            aligned_seq2.append(seq2[j - 1])
+            i -= 1
+            j -= 1
+        elif traceback[i, j] == 1:
+            aligned_seq1.append(seq1[i - 1])
+            aligned_seq2.append("-")
+            i -= 1
+        else:
+            aligned_seq1.append("-")
+            aligned_seq2.append(seq2[j - 1])
+            j -= 1
 
-    # Write the result to a new video file
-    result.write_videofile(f"{video_path}_subtitled.mp4", fps=video.fps, codec='mpeg4')
-    
-    print("Transcription added to video")
+    aligned_seq1.reverse()
+    aligned_seq2.reverse()
+    return aligned_seq1, aligned_seq2
+
+
+def find_speech_segments(audio_path, transcription, interval_ms=30):
+    audio = AudioSegment.from_file(audio_path, format="wav")
+
+    # Resample the audio to meet the WebRTC VAD requirements
+    audio = audio.set_frame_rate(16000).set_channels(1).set_sample_width(2)
+
+    vad = webrtcvad.Vad(2)
+
+    num_slices = len(audio) // interval_ms
+    audio_slices = [
+        audio[i * interval_ms : (i + 1) * interval_ms] for i in range(num_slices)
+    ]
+
+    audio_sequence = []
+    for i, chunk in enumerate(audio_slices[:-1]):
+        is_speech = vad.is_speech(chunk.raw_data, sample_rate=16000)
+        audio_sequence.append("S" if is_speech else "N")
+
+    ref_sequence = []
+    for c in transcription:
+        ref_sequence.extend(["S"] * (len(c) + 1) if c != " " else ["N"])
+
+    aligned_audio_seq, aligned_ref_seq = needleman_wunsch(audio_sequence, ref_sequence)
+
+    speech_segments = []
+    in_speech = False
+    for i, (audio_char, ref_char) in enumerate(zip(aligned_audio_seq, aligned_ref_seq)):
+        if audio_char == "S" and ref_char == "S" and not in_speech:
+            in_speech = True
+            start_time = i * interval_ms / 1000
+        elif (audio_char != "S" or ref_char != "S") and in_speech:
+            in_speech = False
+            end_time = i * interval_ms / 1000
+            speech_segments.append((start_time, end_time))
+
+    if in_speech:
+        end_time = len(audio) / 1000
+        speech_segments.append((start_time, end_time))
+
+    return speech_segments
+
+
+def create_subtitle_tuples(speech_segments, transcription):
+    lines = transcription.split("\n")
+
+    # Calculate the number of speech segments corresponding to each line in the transcription
+    segment_counts = [len(line.split()) for line in lines]
+
+    subtitle_tuples = []
+    segment_index = 0
+
+    for line, count in zip(lines, segment_counts):
+        if count == 0:
+            continue
+
+        start_time, _ = speech_segments[segment_index]
+        _, end_time = speech_segments[segment_index + count - 1]
+        subtitle_tuples.append(((start_time, end_time), line))
+
+        segment_index += count
+
+    return subtitle_tuples
+
+
+def create_subtitles(audio_path, transcription):
+    # Find the speech segments using the Needleman-Wunsch algorithm
+    speech_segments = find_speech_segments(audio_path, transcription)
+
+    # Create a list of tuples representing the subtitles
+    subtitles = create_subtitle_tuples(speech_segments, transcription)
+
+    return subtitles
+
+
+def add_subtitles_to_video(video_path, subtitles):
+    # Create a text clip generator
+    generator = lambda txt: TextClip(txt, font="Arial", fontsize=24, color="white")
+
+    # Create the subtitles clip
+    subtitles_clip = SubtitlesClip(subtitles, generator)
+
+    # Load the input video clip
+    video_clip = VideoFileClip(video_path)
+
+    # Combine the video and subtitles clips
+    result = CompositeVideoClip(
+        [video_clip, subtitles_clip.set_pos(("center", "bottom"))]
+    )
+
+    # Write the output video file
+    output_filename = os.path.splitext(video_path)[0] + "_subtitled.mp4"
+    result.write_videofile(
+        output_filename,
+        fps=video_clip.fps,
+        temp_audiofile="temp-audio.m4a",
+        remove_temp=True,
+        codec="libx264",
+        audio_codec="aac",
+    )

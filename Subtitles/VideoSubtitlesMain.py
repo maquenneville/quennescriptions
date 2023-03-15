@@ -12,18 +12,27 @@ from VideoSubtitlesHelpers import (
     convert_single_to_wav,
     transcribe_audio,
     generate_edited_response,
-    add_transcript_to_video,
+    create_subtitles,
+    add_subtitles_to_video,
 )
-
 
 
 def main():
     # Parse command-line arguments
-    parser = argparse.ArgumentParser(description="Convert video to WAV, transcribe speech, generate edited response, and add transcript to video.")
+    parser = argparse.ArgumentParser(
+        description="Convert video to WAV, transcribe speech, generate edited response, and add transcript to video."
+    )
     parser.add_argument("video_file", help="Path to input video file")
-    parser.add_argument("--dialect", help="Dialect code for speech recognition (default is en-US)", default="en-US")
-    parser.add_argument("--line-time", help="Duration of each line of transcript in seconds (default is 10)", type=int, default=10)
-    parser.add_argument("--dialogue", help="Set this flag if the transcription is dialogue", action="store_true")
+    parser.add_argument(
+        "--dialect",
+        help="Dialect code for speech recognition (default is en-US)",
+        default="en-US",
+    )
+    parser.add_argument(
+        "--dialogue",
+        help="Set this flag if the transcription is dialogue",
+        action="store_true",
+    )
     args = parser.parse_args()
 
     # Convert the video to WAV format
@@ -40,15 +49,14 @@ def main():
 
     # Add the transcript to the video
     print("Adding transcript to video...")
-    add_transcript_to_video(final_transcript, args.video_file, line_time=args.line_time)
+    subs = create_subtitles(audio_file, final_transcript)
+    add_subtitles_to_video(args.video_file, subs)
 
     # Clean up intermediate files
     os.remove(audio_file)
 
     print("Done!")
 
+
 if __name__ == "__main__":
     main()
-
-
-    

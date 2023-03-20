@@ -427,68 +427,47 @@ def needleman_wunsch(seq1, seq2, match_score=1, mismatch_score=-1, gap_penalty=-
     return aligned_seq1, aligned_seq2
 
 
-def find_speech_segments(audio_path, transcription, interval_ms=30):
-    audio = AudioSegment.from_file(audio_path, format="wav")
 
-    # Resample the audio to meet the WebRTC VAD requirements
-    audio = audio.set_frame_rate(16000).set_channels(1).set_sample_width(2)
-
-    vad = webrtcvad.Vad(2)
-
-    num_slices = len(audio) // interval_ms
-    audio_slices = [
-        audio[i * interval_ms : (i + 1) * interval_ms] for i in range(num_slices)
-    ]
-
-    audio_sequence = []
-    for i, chunk in enumerate(audio_slices[:-1]):
-        is_speech = vad.is_speech(chunk.raw_data, sample_rate=16000)
-        audio_sequence.append("S" if is_speech else "N")
-
-    ref_sequence = []
-    for c in transcription:
-        ref_sequence.extend(["S"] * (len(c) + 1) if c != " " else ["N"])
-
-    aligned_audio_seq, aligned_ref_seq = needleman_wunsch(audio_sequence, ref_sequence)
+def find_speech_segments(audio_path, vad_level=3, frame_duration_ms=30, min_speech_gap=1200, min_duration=2.0):
+    audio = AudioSegment.from_wav(audio_path).set_frame_rate(16000).set_channels(1).set_sample_width(2)
+    vad = webrtcvad.Vad(vad_level)
+    num_frames = len(audio) // frame_duration_ms
+    audio_frames = [audio[i * frame_duration_ms:(i + 1) * frame_duration_ms] for i in range(num_frames)]
 
     speech_segments = []
-    in_speech = False
-    for i, (audio_char, ref_char) in enumerate(zip(aligned_audio_seq, aligned_ref_seq)):
-        if audio_char == "S" and ref_char == "S" and not in_speech:
-            in_speech = True
-            start_time = i * interval_ms / 1000
-        elif (audio_char != "S" or ref_char != "S") and in_speech:
-            in_speech = False
-            end_time = i * interval_ms / 1000
-            speech_segments.append((start_time, end_time))
+    current_segment = None
+    speech_buffer = []
 
-    if in_speech:
-        end_time = len(audio) / 1000
-        speech_segments.append((start_time, end_time))
+    for i, frame in enumerate(audio_frames):
+        frame_start = i * frame_duration_ms / 1000
+        frame_end = frame_start + frame_duration_ms / 1000
+        is_speech = vad.is_speech(frame.raw_data, sample_rate=16000)
+
+        if is_speech:
+            speech_buffer.append((frame_start, frame_end))
+            current_segment = (current_segment[0] if current_segment else frame_start, frame_end)
+        elif current_segment and len(speech_buffer) * frame_duration_ms >= min_speech_gap:
+            current_segment = (current_segment[0], current_segment[1] + max(0, min_duration - (current_segment[1] - current_segment[0])))
+            speech_segments.append(current_segment)
+            current_segment = None
+            speech_buffer = []
+
+    if current_segment:
+        current_segment = (current_segment[0], current_segment[1] + max(0, min_duration - (current_segment[1] - current_segment[0])))
+        speech_segments.append(current_segment)
 
     return speech_segments
 
 
+
 def create_subtitle_tuples(speech_segments, transcription):
-    lines = transcription.split("\n")
+    lines = transcription.split('\n')
+    num_segments = min(len(speech_segments), len(lines))
 
-    # Calculate the number of speech segments corresponding to each line in the transcription
-    segment_counts = [len(line.split()) for line in lines]
-
-    subtitle_tuples = []
-    segment_index = 0
-
-    for line, count in zip(lines, segment_counts):
-        if count == 0:
-            continue
-
-        start_time, _ = speech_segments[segment_index]
-        _, end_time = speech_segments[segment_index + count - 1]
-        subtitle_tuples.append(((start_time, end_time), line))
-
-        segment_index += count
+    subtitle_tuples = [((start, end), line) for (start, end), line in zip(speech_segments[:num_segments], lines[:num_segments])]
 
     return subtitle_tuples
+
 
 
 def create_subtitles(audio_path, transcription):

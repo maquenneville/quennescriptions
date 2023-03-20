@@ -32,15 +32,16 @@ You'll also need an OpenAi developers API key, information located here: https:/
 # Usage
 To use the script, first change the API key in VideoSubtitlesHelpers.py to your OpenAI API key.  Then, run the main.py file from the command line with the following arguments:
 
-python VideoSubtitlesMain.py <video_file> [--dialect <dialect_code>] [--line-time <line_time>] [--dialogue]
+python VideoSubtitlesMain.py <video_file> [--dialect <dialect_code>] [--dialogue]
 
-Replace <video_file> with the video file path and <prompt> with . The --dialect, --line-time and --dialogue arguments are optional, and default to "en-US", 10 seconds, and False respectively (leave --dialogue out if you want a narrative transcription, add it to change the transcription format to dialogue).
+Replace <video_file> with the video file path and <prompt> with . The --dialect and --dialogue arguments are optional, and default to "en-US" and False respectively (leave --dialogue out if you want a narrative transcription, add it to change the transcription format to dialogue).
 
 The script will perform the following steps:
 
 -Convert the video file to WAV format
 -Transcribe the speech in the audio file
 -Clean up and format the raw transcription
+-Find speech segments and pair them with the correct sentence/phrase
 -Add the transcript to a copy of the video
 -Clean up intermediate files.
 
@@ -52,4 +53,6 @@ This script is licensed under the MIT License. See the LICENSE file for more inf
 # Notes
 
 You may need to set the ImageMagick config_default.py variable IMAGEMAGICK_BINARY to the path with your magick.exe file, especially if you're using Windows.
+  
+3/14/2023 -- Major overhaul to method used to generate speech segments and match them with transcribed lines using Needleman-Wunsch algorithm, aiming to improve accuracy of subtitles.
 

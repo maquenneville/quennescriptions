@@ -53,6 +53,8 @@ This script is licensed under the MIT License. See the LICENSE file for more inf
 # Notes
 
 You may need to set the ImageMagick config_default.py variable IMAGEMAGICK_BINARY to the path with your magick.exe file, especially if you're using Windows.
+
+3/19/2023 -- Abandoned Needleman-Wunsch, optimized old VAD function for minimum phrase length.
   
 3/14/2023 -- Major overhaul to method used to generate speech segments and match them with transcribed lines using Needleman-Wunsch algorithm, aiming to improve accuracy of subtitles.
 

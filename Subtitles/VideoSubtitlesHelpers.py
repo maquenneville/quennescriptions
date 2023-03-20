@@ -470,13 +470,16 @@ def create_subtitle_tuples(speech_segments, transcription):
 
 
 
-def create_subtitles(audio_path, transcription):
-    # Find the speech segments using the Needleman-Wunsch algorithm
-    speech_segments = find_speech_segments(audio_path, transcription)
-
+def create_subtitles(audio_path, transcription, min_speech_gap=900):
+    
+    print("Scanning audio for speech segments...")
+    # Find the speech segments
+    speech_segments = find_speech_segments(audio_path, min_speech_gap)
+    print("Speech segments found, creating subtitles...")
     # Create a list of tuples representing the subtitles
     subtitles = create_subtitle_tuples(speech_segments, transcription)
-
+    
+    print("Subtitles created!")
     return subtitles
 
 

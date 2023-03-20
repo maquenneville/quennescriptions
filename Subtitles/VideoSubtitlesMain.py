@@ -29,6 +29,11 @@ def main():
         default="en-US",
     )
     parser.add_argument(
+        "--speech_gap",
+        help="Max gap between words of the same phrase in milliseconds (default is 900 ms)",
+        default=900,
+    )
+    parser.add_argument(
         "--dialogue",
         help="Set this flag if the transcription is dialogue",
         action="store_true",
@@ -49,7 +54,7 @@ def main():
 
     # Add the transcript to the video
     print("Adding transcript to video...")
-    subs = create_subtitles(audio_file, final_transcript)
+    subs = create_subtitles(audio_file, final_transcript, min_speech_gap=args.speech_gap)
     add_subtitles_to_video(args.video_file, subs)
 
     # Clean up intermediate files

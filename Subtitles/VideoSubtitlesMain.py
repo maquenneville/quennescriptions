@@ -10,7 +10,7 @@ import argparse
 import os
 from VideoSubtitlesHelpers import (
     convert_single_to_wav,
-    transcribe_audio,
+    transcribe_using_whisper,
     generate_edited_response,
     create_subtitles,
     add_subtitles_to_video,
@@ -23,11 +23,6 @@ def main():
         description="Convert video to WAV, transcribe speech, generate edited response, and add transcript to video."
     )
     parser.add_argument("video_file", help="Path to input video file")
-    parser.add_argument(
-        "--dialect",
-        help="Dialect code for speech recognition (default is en-US)",
-        default="en-US",
-    )
     parser.add_argument(
         "--speech_gap",
         help="Max gap between words of the same phrase in milliseconds (default is 900 ms)",
@@ -46,7 +41,7 @@ def main():
 
     # Transcribe the speech in the audio file
     print("Transcribing speech...")
-    transcript = transcribe_audio(audio_file, dialect_code=args.dialect)
+    transcript = transcribe_using_whisper(audio_file)
 
     # Generate the edited response to the prompt
     print("Generating edited response...")

@@ -148,6 +148,66 @@ def transcribe_audio(audio_file, dialect_code="en-US"):
         return transcribed_text_google
     except sr.UnknownValueError:
         print("Unable to transcribe audio")
+        
+def transcribe_using_whisper(audio_file, prompt="""This transcription is for lines of speech.
+                                       Each line should be on a new line.
+                                       If it's an item in a list,
+                                       it should go on a new line.
+                                       Example:
+                                           Let's go to the mall,
+                                           get some coffee,
+                                           and relax at home.
+                                       """):
+    
+    print("Listening to and transcribing speech...")
+    
+
+    size = os.path.getsize(audio_file)
+    
+    if size > 26000000:
+        
+        full_trans = []
+        
+        folder_path = os.path.dirname(audio_file) + "\\"
+        
+        
+        audio = AudioSegment.from_wav(audio_file)
+        
+        # Get length of audio file in milliseconds and split into four equal size chunks
+        audio_length = len(audio)
+        chunk_length = math.ceil(audio_length / 4)
+        chunks = [audio[i*chunk_length:(i+1)*chunk_length] for i in range(4)]
+        
+        for chunk in chunks:
+            
+            # Export each chunk as a temporary WAV file
+            tmp_filename = "tmp.wav"
+            chunk.export(tmp_filename, format="wav")
+            
+            tmp_file = open(folder_path + tmp_filename, "rb")
+    
+            transcript = openai.Audio.transcribe("whisper-1", tmp_file)
+            
+            full_trans += transcript.text
+            
+            # Delete temporary WAV file
+            tmp_file.close()
+            time.sleep(1)
+            os.remove(tmp_filename)
+        
+        full_trans = "".join(full_trans)
+        
+    else:
+        
+        audio_file = open(audio_file, "rb")
+        
+        full_trans = openai.Audio.transcribe("whisper-1", audio_file)
+        full_trans = full_trans.text
+    
+        audio_file.close()
+
+    print("Transcription complete!")
+    return full_trans
 
 
 def record_audio(filename, duration=5, sample_rate=44100, channels=1, sample_width=2):

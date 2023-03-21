@@ -32,9 +32,9 @@ You'll also need an OpenAi developers API key, information located here: https:/
 # Usage
 To use the script, first change the API key in VideoSubtitlesHelpers.py to your OpenAI API key.  Then, run the main.py file from the command line with the following arguments:
 
-python VideoSubtitlesMain.py <video_file> [--dialect <dialect_code>] [--speech_gap] [--dialogue]
+python VideoSubtitlesMain.py <video_file> [--speech_gap] [--dialogue]
 
-Replace <video_file> with the video file path and <prompt> with . The --dialect, speech_gap and --dialogue arguments are optional, and default to "en-US", 900ms and False respectively (leave --dialogue out if you want a narrative transcription, add it to change the transcription format to dialogue).
+Replace <video_file> with the video file path and <prompt> with . The speech_gap and --dialogue arguments are optional, and default to 900ms and False respectively (leave --dialogue out if you want a narrative transcription, add it to change the transcription format to dialogue).
 
 The script will perform the following steps:
 
@@ -53,6 +53,11 @@ This script is licensed under the MIT License. See the LICENSE file for more inf
 # Notes
 
 You may need to set the ImageMagick config_default.py variable IMAGEMAGICK_BINARY to the path with your magick.exe file, especially if you're using Windows.
+
+
+# Updates
+
+3/21/2023 -- Upgraded transcription method to OpenAI Whisper API calls, for a massive improvement in subtitle accuracy.  Removed --dialect option as Whisper does not need to be prompted for dialect.
 
 3/19/2023 -- Abandoned Needleman-Wunsch, optimized old VAD function for minimum phrase length.
   

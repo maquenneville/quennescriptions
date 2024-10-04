@@ -1,61 +1,51 @@
-# HomeVideoSubtitles
+# Quennescriptions
 
 
 This Python script provides a command-line interface for adding speech-to-text transcription for video files, creating a copy with subtitles (accepts most mainstream video filetypes).
 
-# Installation
-To use this script, you will need to have Python 3 and the following Python packages installed:
+## Installation
+- to use this script, you will need to have >= Python 3.8.
 
-moviepy
-SpeechRecognition
-numpy
-pandas
-os
-pydub
-pyaudio
-wave
-cv2
-noisereduce
-librosa
-openai
+- activate your environment, and install these packages using pip:
+
+`pip install -r requirements.txt`
 
 
-
-You can install these packages using pip:
-
-pip install moviepy SpeechRecognition numpy pandas pydub pyaudio wave cv2 noisereduce librosa openai
+- update the config file with your OpenAI API key (information located here: https://platform.openai.com/overview)
 
 
-You'll also need an OpenAi developers API key, information located here: https://platform.openai.com/overview
+## Usage
+To use the script, first change the API key in VideoSubtitlesHelpers.py to your OpenAI API key.  Then, run the main.py file from the command line with the following arguments (replace <video_file> with the path to your video file):
+
+`python quennescriptions.py <video_file>`
 
 
-# Usage
-To use the script, first change the API key in VideoSubtitlesHelpers.py to your OpenAI API key.  Then, run the main.py file from the command line with the following arguments:
 
-python VideoSubtitlesMain.py <video_file> [--speech_gap] [--dialogue]
+The script will then:
 
-Replace <video_file> with the video file path and <prompt> with . The speech_gap and --dialogue arguments are optional, and default to 900ms and False respectively (leave --dialogue out if you want a narrative transcription, add it to change the transcription format to dialogue).
+- Extract the audio from the provided video file and saves it as a WAV file.
+Transcribe the Speech:
 
-The script will perform the following steps:
+- Use OpenAI's Whisper API to transcribe the audio from the WAV file.
 
--Convert the video file to WAV format
--Transcribe the speech in the audio file
--Clean up and format the raw transcription
--Find speech segments and pair them with the correct sentence/phrase
--Add the transcript to a copy of the video
--Clean up intermediate files.
+- Format the raw transcription into an SRT (SubRip Subtitle) file, ensuring accurate timing and formatting.
 
-The resulting video file with the added transcript will be saved in the same directory as the original video file, with the same filename and the suffix "_transcript".
+- Embed the generated subtitles into a copy of the original video, producing a new video file with subtitles.
 
-# License
+- The resulting video file with the added subtitles will be saved in the same directory as the original video file (The filename will retain the original name with the suffix _subtitled.mp4)
+
+
+## License
 This script is licensed under the MIT License. See the LICENSE file for more information.
 
-# Notes
+## Notes
 
 You may need to set the ImageMagick config_default.py variable IMAGEMAGICK_BINARY to the path with your magick.exe file, especially if you're using Windows.
 
 
-# Updates
+## Updates
+
+10/4/2024 -- Leveraged Whisper's segment timing to improve subtitle placement and display timing, streamlining the process greatly.  Should see much improved performance.
 
 3/21/2023 -- Upgraded transcription method to OpenAI Whisper API calls, for a massive improvement in subtitle accuracy.  Removed --dialect option as Whisper does not need to be prompted for dialect.
 

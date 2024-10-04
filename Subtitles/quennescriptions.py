@@ -8,8 +8,8 @@ Created on Sat Mar 11 00:35:16 2023
 
 import argparse
 import os
-from subtitle_helpers import generate_subtitles
-
+from subtitle_helpers import generate_subtitles, cleanup_temp_files
+import traceback
 
 def main():
     # Parse command-line arguments
@@ -17,30 +17,6 @@ def main():
         description="Generate subtitles for a video using OpenAI's Whisper API."
     )
     parser.add_argument("video_file", help="Path to input video file")
-    parser.add_argument(
-        "--num_threads",
-        type=int,
-        default=4,
-        help="Number of threads to use for transcription (default: 4)",
-    )
-    parser.add_argument(
-        "--min_silence_length",
-        type=int,
-        default=500,
-        help="Minimum length of silence to consider a break in milliseconds (default: 500 ms)",
-    )
-    parser.add_argument(
-        "--silence_thresh",
-        type=int,
-        default=-40,
-        help="Silence threshold in dBFS (default: -40 dBFS)",
-    )
-    parser.add_argument(
-        "--font_size",
-        type=int,
-        default=24,
-        help="Font size for subtitles (default: 24)",
-    )
     args = parser.parse_args()
 
     video_file = args.video_file
@@ -50,17 +26,22 @@ def main():
         return
 
     # Generate subtitles
-    generate_subtitles(
-        video_file,
-        num_threads=args.num_threads,
-        min_silence_length=args.min_silence_length,
-        silence_thresh=args.silence_thresh,
-        font_size=args.font_size,
-    )
+    try:
+        generate_subtitles(video_file)
 
-    print("Done!")
-
+        print("Subtitle generation completed successfully.")
+        
+    except Exception as e:
+        print(traceback.format_exc())
+    finally:
+        # Ensure that cleanup_temp_files is called only if video_file is defined
+        try:
+            cleanup_temp_files(video_file)
+        except NameError:
+            pass
 
 if __name__ == "__main__":
+    
     main()
+
 

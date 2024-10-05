@@ -17,9 +17,21 @@ def main():
         description="Generate subtitles for a video using OpenAI's Whisper API."
     )
     parser.add_argument("video_file", help="Path to input video file")
+    parser.add_argument(
+        "--portrait",
+        action="store_true",
+        help="Specify if the video is in portrait mode",
+    )
+    parser.add_argument(
+        "--font-size",
+        type=int,
+        help="Specify the font size for the subtitles",
+    )
     args = parser.parse_args()
 
     video_file = args.video_file
+    is_portrait = args.portrait
+    font_size = args.font_size
 
     if not os.path.exists(video_file):
         print(f"Video file not found: {video_file}")
@@ -27,10 +39,8 @@ def main():
 
     # Generate subtitles
     try:
-        generate_subtitles(video_file)
+        generate_subtitles(video_file, is_portrait, font_size)
 
-        print("Subtitle generation completed successfully.")
-        
     except Exception as e:
         print(traceback.format_exc())
     finally:
@@ -40,8 +50,8 @@ def main():
         except NameError:
             pass
 
+
 if __name__ == "__main__":
-    
     main()
 
 

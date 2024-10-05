@@ -15,11 +15,11 @@ This Python script provides a command-line interface for adding speech-to-text t
 
 
 ## Usage
-To use the script, first change the API key in VideoSubtitlesHelpers.py to your OpenAI API key.  Then, run the main.py file from the command line with the following arguments (replace <video_file> with the path to your video file):
+To use the script, first change the API key in VideoSubtitlesHelpers.py to your OpenAI API key.  Then, run the main.py file from the command line with the following arguments:
 
-`python quennescriptions.py <video_file>`
+`python quennescriptions.py <video_file> [--portrait] [--font-size FONT SIZE]`
 
-
+(replace <video_file> with the path to your video file.  If the video is in portrait orientation, try adding the portait flag (defaults to landscape).  Add a font size to tweak the default, dynamically-generated font size).
 
 The script will then:
 

@@ -167,9 +167,11 @@ def transcribe_using_whisper(audio_file):
             transcript = client.audio.transcriptions.create(
                 model="whisper-1",
                 file=af,
-                response_format="verbose_json"
+                response_format="verbose_json",
+                timestamp_granularities=['word', 'segment']
             )
         print("Transcription complete!")
+        #print(transcript)
         return transcript  # This is the JSON response
     except openai.error.OpenAIError as e:
         print(f"An error occurred during transcription: {e}")
@@ -177,22 +179,47 @@ def transcribe_using_whisper(audio_file):
 
 def generate_srt_from_transcript(transcript_json, srt_filename):
     """
-    Generates an SRT file from the transcript JSON data.
+    Generates an SRT file from the transcript JSON data with incremental word additions within segments.
     """
     print("Generating SRT file from transcript...")
+    words = transcript_json.words
     segments = transcript_json.segments
     subtitles = []
-    for i, segment in enumerate(segments):
-        index = i + 1
-        start_time = timedelta(seconds=segment['start'])
-        end_time = timedelta(seconds=segment['end'])
-        content = segment['text'].strip()
-        subtitle = srt.Subtitle(index, start_time, end_time, content)
-        subtitles.append(subtitle)
+    index = 1  # Subtitle index
+    
+    word_idx = 0  # Index to keep track of the current word
+    
+    for segment in segments:
+        current_text = ""
+        segment_words = []
+        
+        # Collect words that belong to this segment
+        while word_idx < len(words) and words[word_idx]['start'] >= segment['start'] and words[word_idx]['end'] <= segment['end']:
+            segment_words.append(words[word_idx])
+            word_idx += 1
+
+        num_words = len(segment_words)
+        for i, word in enumerate(segment_words):
+            current_text += word['word'] + ' '
+            start_time = word['start']
+            if i + 1 < num_words:
+                end_time = segment_words[i + 1]['start']
+            else:
+                end_time = segment['end']
+            subtitle = srt.Subtitle(
+                index=index,
+                start=timedelta(seconds=start_time),
+                end=timedelta(seconds=end_time),
+                content=current_text.strip()
+            )
+            subtitles.append(subtitle)
+            index += 1
+
     srt_content = srt.compose(subtitles)
     with open(srt_filename, "w", encoding="utf-8") as srt_file:
         srt_file.write(srt_content)
     print(f"SRT file saved to {srt_filename}")
+
 
 
 
@@ -247,6 +274,7 @@ def add_subtitles_to_video(video_path, srt_path, is_portrait=False, font_size=No
         audio_codec="aac",
         temp_audiofile="temp-audio.m4a",
         remove_temp=True,
+        threads=8
     )
     print(f"Subtitled video saved to {output_filename}")
     return output_filename
